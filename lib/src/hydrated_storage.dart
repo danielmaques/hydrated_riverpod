@@ -96,11 +96,7 @@ class HiveHydratedStorage implements HydratedStorage {
     try {
       return box.get(key);
     } catch (error, stackTrace) {
-      throw StorageException(
-        'Failed to read key: $key',
-        error,
-        stackTrace,
-      );
+      throw StorageException('Failed to read key: $key', error, stackTrace);
     }
   }
 
@@ -110,11 +106,7 @@ class HiveHydratedStorage implements HydratedStorage {
       try {
         await box.put(key, value);
       } catch (error, stackTrace) {
-        throw StorageException(
-          'Failed to write key: $key',
-          error,
-          stackTrace,
-        );
+        throw StorageException('Failed to write key: $key', error, stackTrace);
       }
     });
   }
@@ -125,11 +117,7 @@ class HiveHydratedStorage implements HydratedStorage {
       try {
         await box.delete(key);
       } catch (error, stackTrace) {
-        throw StorageException(
-          'Failed to delete key: $key',
-          error,
-          stackTrace,
-        );
+        throw StorageException('Failed to delete key: $key', error, stackTrace);
       }
     });
   }
@@ -141,11 +129,7 @@ class HiveHydratedStorage implements HydratedStorage {
       try {
         await box.clear();
       } catch (error, stackTrace) {
-        throw StorageException(
-          'Failed to clear storage',
-          error,
-          stackTrace,
-        );
+        throw StorageException('Failed to clear storage', error, stackTrace);
       }
     });
   }

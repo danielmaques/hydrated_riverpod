@@ -218,9 +218,7 @@ mixin AutoDisposeHydratedMixin<State> on HydratedMixinBase<State> {
   HydratedStorage get _storage {
     final storage = HydratedStorage.instance;
     if (storage == null) {
-      throw const StorageException(
-        'HydratedStorage is not initialized.',
-      );
+      throw const StorageException('HydratedStorage is not initialized.');
     }
     return storage;
   }

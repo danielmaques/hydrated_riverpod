@@ -23,10 +23,8 @@ class TestTodoNotifier extends HydratedNotifier<List<String>> {
   List<String> build() => hydrate() ?? [];
 
   void addTodo(String todo) => state = [...state, todo];
-  void removeTodo(int index) => state = [
-        ...state.sublist(0, index),
-        ...state.sublist(index + 1),
-      ];
+  void removeTodo(int index) =>
+      state = [...state.sublist(0, index), ...state.sublist(index + 1)];
 
   @override
   Map<String, dynamic>? toJson(List<String> state) => {'todos': state};
