@@ -1,14 +1,18 @@
 name: example
-description: "A new Flutter project."
+description: "Example app demonstrating hydrated_riverpod usage"
 publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.8.1
+  sdk: ^3.5.0
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_riverpod: ^3.0.3
+  hydrated_riverpod:
+    path: ../
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
