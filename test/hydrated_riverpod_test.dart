@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 class TestCounterNotifier extends HydratedNotifier<int> {
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
   void decrement() => state--;
@@ -20,7 +20,7 @@ class TestCounterNotifier extends HydratedNotifier<int> {
 
 class TestTodoNotifier extends HydratedNotifier<List<String>> {
   @override
-  List<String> buildInitialState() => [];
+  List<String> build() => hydrate() ?? [];
 
   void addTodo(String todo) => state = [...state, todo];
   void removeTodo(int index) => state = [
@@ -225,7 +225,7 @@ void main() {
 
 class FailingNotifier extends HydratedNotifier<int> {
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
@@ -239,7 +239,7 @@ class FailingNotifier extends HydratedNotifier<int> {
 
 class NonMapNotifier extends HydratedNotifier<int> {
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
@@ -259,7 +259,7 @@ class SuffixNotifier extends HydratedNotifier<int> {
   String? get storageKeySuffix => id;
 
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void bump() => state++;
 
@@ -275,7 +275,7 @@ class DebouncedNotifier extends HydratedNotifier<int> {
   Duration get writeDebounce => const Duration(milliseconds: 50);
 
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void bump() => state++;
 
@@ -291,7 +291,7 @@ class DebouncedAutoDisposeNotifier extends AutoDisposeHydratedNotifier<int> {
   Duration get writeDebounce => const Duration(milliseconds: 50);
 
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void bump() => state++;
 

@@ -54,6 +54,8 @@ Future<void> main() async {
 
 ## Usage
 
+Chame `hydrate()` no início do `build()` para restaurar o estado persistido (ele retorna `null` quando não há nada salvo).
+
 ### Criando um notifier hidratado
 
 ```dart
@@ -62,7 +64,7 @@ import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 
 class CounterNotifier extends HydratedNotifier<int> {
   @override
-  int build() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
@@ -88,7 +90,7 @@ final counterProvider = NotifierProvider<CounterNotifier, int>(
 ```dart
 class TempCounterNotifier extends AutoDisposeHydratedNotifier<int> {
   @override
-  int build() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
@@ -116,7 +118,7 @@ await HydratedStorage.instance?.clear(); // Limpa tudo
 ```dart
 class SafeCounterNotifier extends HydratedNotifier<int> {
   @override
-  int build() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
@@ -154,7 +156,7 @@ class CustomKeyNotifier extends HydratedNotifier<String> {
   final String userId;
 
   @override
-  String build() => 'Hello World';
+  String build() => hydrate() ?? 'Hello World';
 
   @override
   Map<String, dynamic>? toJson(String state) => {'text': state};
@@ -177,7 +179,7 @@ class DebouncedCounter extends HydratedNotifier<int> {
   }
 
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 

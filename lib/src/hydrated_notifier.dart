@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -17,7 +18,7 @@ import 'storage_exception.dart';
 /// ```dart
 /// class CounterNotifier extends HydratedNotifier<int> {
 ///   @override
-///   int buildInitialState() => 0;
+///   int build() => hydrate() ?? 0;
 ///
 ///   void increment() => state++;
 ///
@@ -80,7 +81,29 @@ mixin HydratedMixin<State> on Notifier<State> {
 
   Timer? _debounceTimer;
   Map<String, dynamic>? _pendingPersist;
+  bool _disposeRegistered = false;
   static const _equality = DeepCollectionEquality();
+
+  void _registerDispose() {
+    if (_disposeRegistered) return;
+    _disposeRegistered = true;
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+      final payload = _pendingPersist;
+      _pendingPersist = null;
+      if (payload != null) {
+        _flushPending(payload);
+      }
+    });
+  }
+
+  /// Attempts to restore persisted state and ensures pending writes flush on dispose.
+  /// Returns null when there is no saved state.
+  @protected
+  State? hydrate() {
+    _registerDispose();
+    return _loadState();
+  }
 
   State? _loadState() {
     try {
@@ -115,15 +138,9 @@ mixin HydratedMixin<State> on Notifier<State> {
 
   void _saveState(State state) {
     try {
+      _registerDispose();
       final json = toJson(state);
       if (json == null) return;
-      if (json is! Map) {
-        onError(
-          StorageException('toJson must return a Map<String, dynamic>'),
-          StackTrace.current,
-        );
-        return;
-      }
 
       final mapped = Map<String, dynamic>.from(json as Map);
       final previous = readFromCache(storageKey);
@@ -164,29 +181,19 @@ mixin HydratedMixin<State> on Notifier<State> {
     }
   }
 
-  @override
-  State build() {
-    final persistedState = _loadState();
-    ref.onDispose(() {
-      _debounceTimer?.cancel();
-      final payload = _pendingPersist;
-      _pendingPersist = null;
-      if (payload != null) {
-        _flushPending(payload);
-      }
-    });
-    return persistedState ?? buildInitialState();
-  }
-
-  /// Builds the initial state when no persisted state exists
   @protected
-  State buildInitialState();
+  bool updateShouldNotify(State previous, State current) => previous != current;
 
   /// Called when an error occurs during serialization/deserialization
   @protected
   @mustCallSuper
   void onError(Object error, StackTrace stackTrace) {
-    // Override to handle errors
+    developer.log(
+      'HydratedRiverpod error: $error',
+      name: 'HydratedRiverpod',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   /// Clears the persisted state
@@ -243,7 +250,27 @@ mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
 
   Timer? _debounceTimer;
   Map<String, dynamic>? _pendingPersist;
+  bool _disposeRegistered = false;
   static const _equality = DeepCollectionEquality();
+
+  void _registerDispose() {
+    if (_disposeRegistered) return;
+    _disposeRegistered = true;
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+      final payload = _pendingPersist;
+      _pendingPersist = null;
+      if (payload != null) {
+        _flushPending(payload);
+      }
+    });
+  }
+
+  @protected
+  State? hydrate() {
+    _registerDispose();
+    return _loadState();
+  }
 
   State? _loadState() {
     try {
@@ -278,20 +305,13 @@ mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
 
   void _saveState(State state) {
     try {
+      _registerDispose();
       final json = toJson(state);
       if (json == null) return;
-      if (json is! Map) {
-        onError(
-          StorageException('toJson must return a Map<String, dynamic>'),
-          StackTrace.current,
-        );
-        return;
-      }
 
       final mapped = Map<String, dynamic>.from(json as Map);
       final previous = readFromCache(storageKey);
-      if (previous != null &&
-          _equality.equals(previous, mapped)) {
+      if (previous != null && _equality.equals(previous, mapped)) {
         return;
       }
 
@@ -328,26 +348,19 @@ mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
     }
   }
 
-  @override
-  State build() {
-    final persistedState = _loadState();
-    ref.onDispose(() {
-      _debounceTimer?.cancel();
-      final payload = _pendingPersist;
-      _pendingPersist = null;
-      if (payload != null) {
-        _flushPending(payload);
-      }
-    });
-    return persistedState ?? buildInitialState();
-  }
-
   @protected
-  State buildInitialState();
+  bool updateShouldNotify(State previous, State current) => previous != current;
 
   @protected
   @mustCallSuper
-  void onError(Object error, StackTrace stackTrace) {}
+  void onError(Object error, StackTrace stackTrace) {
+    developer.log(
+      'HydratedRiverpod error: $error',
+      name: 'HydratedRiverpod',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
 
   Future<void> clear() async {
     removeFromCache(storageKey);

@@ -6,7 +6,7 @@ import 'package:riverpod/riverpod.dart';
 /// Exemplo simples de contador que persiste seu estado
 class CounterNotifier extends HydratedNotifier<int> {
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
   void decrement() => state--;
@@ -21,7 +21,7 @@ class CounterNotifier extends HydratedNotifier<int> {
 /// Exemplo de lista de tarefas que persiste seu estado
 class TodoNotifier extends HydratedNotifier<List<String>> {
   @override
-  List<String> buildInitialState() => [];
+  List<String> build() => hydrate() ?? [];
 
   void addTodo(String todo) => state = [...state, todo];
 
@@ -51,7 +51,7 @@ class SessionCounterNotifier extends AutoDisposeHydratedNotifier<int> {
   Duration get writeDebounce => const Duration(milliseconds: 100);
 
   @override
-  int buildInitialState() => 0;
+  int build() => hydrate() ?? 0;
 
   void increment() => state++;
 
