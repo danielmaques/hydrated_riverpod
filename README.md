@@ -20,17 +20,34 @@ Inspirado no [hydrated_bloc](https://pub.dev/packages/hydrated_bloc), mas feito 
 
 ## 📦 Instalação
 
+Adicione ao seu `pubspec.yaml`:
+
 ```yaml
 dependencies:
   hydrated_riverpod: ^0.1.0
-  riverpod: ^3.0.3
-  hive_ce: ^2.6.0
-  path_provider: ^2.1.3  # Para obter diretório no Flutter
+  riverpod: ^3.0.3  # ou flutter_riverpod para Flutter
+```
+
+Para **Flutter**, você também precisa do `path_provider` para obter o diretório de documentos:
+
+```yaml
+dependencies:
+  path_provider: ^2.1.3  # Apenas para Flutter
+```
+
+> **💡 Nota**: `hive_ce` já está incluído como dependência do `hydrated_riverpod`, você não precisa adicioná-lo!
+
+Então rode:
+
+```bash
+dart pub get  # ou flutter pub get
 ```
 
 ## 🚀 Quick Start
 
 ### 1. Configure o storage (apenas uma vez no main)
+
+**Para Flutter:**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -41,20 +58,35 @@ import 'package:path_provider/path_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Para Flutter
+  // Obter diretório para storage
   final appDir = await getApplicationDocumentsDirectory();
+  
+  // Inicializar storage
   final storage = await HiveHydratedStorage.build(
     storageDirectory: appDir.path,
   );
-
-  // Para Dart puro
-  // final storage = await HiveHydratedStorage.build(
-  //   storageDirectory: Directory.current.path,
-  // );
-
   HydratedStorage.instance = storage;
 
   runApp(const ProviderScope(child: MyApp()));
+}
+```
+
+**Para Dart puro:**
+
+```dart
+import 'dart:io';
+import 'package:hydrated_riverpod/hydrated_riverpod.dart';
+import 'package:riverpod/riverpod.dart';
+
+Future<void> main() async {
+  // Inicializar storage
+  final storage = await HiveHydratedStorage.build(
+    storageDirectory: Directory.current.path,
+  );
+  HydratedStorage.instance = storage;
+
+  final container = ProviderContainer();
+  // ... seu código
 }
 ```
 
@@ -424,7 +456,7 @@ Map<String, dynamic>? toJson(State state) {
 
 ### Estado não está persistindo
 
-1. Verifique se `HydratedStorage.instance` foi inicializado
+1. Verifique se `HydratedStorage.instance` foi inicializado no `main()`
 2. Certifique-se de chamar `hydrate()` no `build()`
 3. Verifique se `toJson()` está retornando um Map válido
 4. Confirme que o dispose está sendo chamado
@@ -434,11 +466,12 @@ Map<String, dynamic>? toJson(State state) {
 Você esqueceu de inicializar o storage no `main()`:
 
 ```dart
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  final appDir = await getApplicationDocumentsDirectory();
   final storage = await HiveHydratedStorage.build(
-    storageDirectory: (await getApplicationDocumentsDirectory()).path,
+    storageDirectory: appDir.path,
   );
   HydratedStorage.instance = storage; // ← Não esqueça!
   
@@ -465,7 +498,7 @@ Hive não suporta múltiplos isolates na mesma box. Se você vir avisos sobre "M
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+Contribuições são bem-vindas! Por favor, abra uma issue ou PR.
 
 ## 📄 License
 
