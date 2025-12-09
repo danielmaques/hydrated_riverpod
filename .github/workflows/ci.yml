@@ -6,21 +6,38 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Explicit permissions (security best practice)
+permissions:
+  contents: read
+
 jobs:
-  test:
+  analyze:
+    name: Analyze & Format
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        sdk: [3.5.0, stable]
+    timeout-minutes: 10
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: ${{ matrix.sdk }}
+          sdk: stable
+      
+      - name: Cache Dart dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: dart-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            dart-pub-
       
       - name: Install dependencies
         run: dart pub get
@@ -31,24 +48,70 @@ jobs:
       - name: Analyze code
         run: dart analyze --fatal-infos
       
-      - name: Run tests
-        run: dart test
-      
       - name: Check pub publish warnings
         run: dart pub publish --dry-run
 
-  coverage:
-    needs: test
+  test:
+    name: Test (Dart ${{ matrix.sdk }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: analyze
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ['3.5.0', stable]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+      
+      - name: Cache Dart dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: dart-pub-${{ matrix.sdk }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            dart-pub-${{ matrix.sdk }}-
+            dart-pub-
+      
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Run tests
+        run: dart test --reporter=github
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
+      
+      - name: Cache Dart dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: dart-pub-coverage-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            dart-pub-coverage-
+            dart-pub-
       
       - name: Install dependencies
         run: dart pub get
@@ -63,24 +126,37 @@ jobs:
         run: dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
       
       - name: Upload to Codecov
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
           fail_ci_if_error: false
+          verbose: true
         continue-on-error: true
 
   pana:
+    name: Package Analysis (pana)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
+      
+      - name: Cache Dart dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: dart-pub-pana-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            dart-pub-pana-
+            dart-pub-
       
       - name: Install dependencies
         run: dart pub get
@@ -88,5 +164,5 @@ jobs:
       - name: Install pana
         run: dart pub global activate pana
       
-      - name: Verify pub score
-        run: dart pub global run pana --no-warning
+      - name: Run pana analysis
+        run: dart pub global run pana --no-warning --exit-code-threshold 0
