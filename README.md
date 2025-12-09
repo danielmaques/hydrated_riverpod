@@ -5,30 +5,36 @@
 
 Uma extensão do Riverpod que automaticamente persiste e restaura o estado dos seus notifiers usando Hive como backend de armazenamento.
 
-## Features
+Inspirado no [hydrated_bloc](https://pub.dev/packages/hydrated_bloc), mas feito especificamente para Riverpod.
+
+## ✨ Features
 
 - 🔄 **Persistência automática**: Salva e restaura o estado automaticamente
-- 🏗️ **Compatível com Riverpod**: Funciona com `Notifier` e `AutoDisposeNotifier`
-- 🗄️ **Backend Hive**: Usa Hive para armazenamento local eficiente
-- 🛡️ **Tratamento de erros**: Lida graciosamente com erros de serialização/desserialização
-- 🔒 **Thread-safe**: Operações de armazenamento sincronizadas
-- 🧹 **Limpeza fácil**: Métodos para limpar estado persistido
+- 🏗️ **API familiar**: Use `build()` como Riverpod normal, apenas chame `hydrate()`
+- 🗄️ **Backend Hive**: Armazenamento local eficiente e confiável
+- 🛡️ **Tratamento de erros**: Lida graciosamente com erros de serialização
+- 🔒 **Thread-safe**: Operações sincronizadas com `synchronized`
+- ⚡ **Debounce integrado**: Otimize escritas frequentes
+- 🧹 **Fácil limpeza**: Métodos para limpar estado persistido
+- 🎯 **Cache in-memory**: Evita race conditions em writes assíncronos
 
-## Getting started
-
-### 1. Adicione a dependência
+## 📦 Instalação
 
 ```yaml
 dependencies:
-  hydrated_riverpod: ^1.0.0
+  hydrated_riverpod: ^0.1.0
   riverpod: ^3.0.3
   hive_ce: ^2.6.0
-  path_provider: ^2.1.3  # Para Flutter
+  path_provider: ^2.1.3  # Para obter diretório no Flutter
 ```
 
-### 2. Configure o armazenamento
+## 🚀 Quick Start
+
+### 1. Configure o storage (apenas uma vez no main)
 
 ```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -48,15 +54,11 @@ Future<void> main() async {
 
   HydratedStorage.instance = storage;
 
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 ```
 
-## Usage
-
-Chame `hydrate()` no início do `build()` para restaurar o estado persistido (ele retorna `null` quando não há nada salvo).
-
-### Criando um notifier hidratado
+### 2. Crie um notifier hidratado
 
 ```dart
 import 'package:riverpod/riverpod.dart';
@@ -64,17 +66,17 @@ import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 
 class CounterNotifier extends HydratedNotifier<int> {
   @override
-  int build() => hydrate() ?? 0;
+  int build() => hydrate() ?? 0; // Restaura estado ou usa 0 como padrão
 
   void increment() => state++;
-
   void decrement() => state--;
+  void reset() => state = 0;
 
-  // Serialização para JSON
+  // Como serializar
   @override
   Map<String, dynamic>? toJson(int state) => {'value': state};
 
-  // Desserialização do JSON
+  // Como desserializar
   @override
   int? fromJson(Map<String, dynamic> json) => json['value'] as int?;
 }
@@ -85,7 +87,152 @@ final counterProvider = NotifierProvider<CounterNotifier, int>(
 );
 ```
 
-### Usando com AutoDispose
+### 3. Use normalmente
+
+```dart
+class CounterPage extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final counter = ref.watch(counterProvider);
+
+    return Scaffold(
+      body: Center(
+        child: Text('Counter: $counter'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => ref.read(counterProvider.notifier).increment(),
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+```
+
+**Pronto!** O estado agora persiste automaticamente. Feche e reabra o app - o contador estará lá! 🎉
+
+## 📚 Exemplos Avançados
+
+### Estado complexo com classes
+
+```dart
+class TodoNotifier extends HydratedNotifier<List<Todo>> {
+  @override
+  List<Todo> build() => hydrate() ?? [];
+
+  void addTodo(String title) {
+    state = [...state, Todo(id: uuid.v4(), title: title)];
+  }
+
+  void toggleTodo(String id) {
+    state = [
+      for (final todo in state)
+        if (todo.id == id) todo.copyWith(done: !todo.done) else todo,
+    ];
+  }
+
+  @override
+  Map<String, dynamic>? toJson(List<Todo> state) {
+    return {'todos': state.map((t) => t.toJson()).toList()};
+  }
+
+  @override
+  List<Todo>? fromJson(Map<String, dynamic> json) {
+    final todos = json['todos'] as List?;
+    if (todos == null) return null;
+    return todos.map((t) => Todo.fromJson(t)).toList();
+  }
+}
+```
+
+### Com Freezed/json_serializable
+
+```dart
+@freezed
+class UserState with _$UserState {
+  const factory UserState({
+    required String name,
+    required String email,
+    required bool isLoggedIn,
+  }) = _UserState;
+
+  factory UserState.fromJson(Map<String, dynamic> json) =>
+      _$UserStateFromJson(json);
+}
+
+class UserNotifier extends HydratedNotifier<UserState> {
+  @override
+  UserState build() => hydrate() ?? UserState.empty();
+
+  void login(String name, String email) {
+    state = state.copyWith(name: name, email: email, isLoggedIn: true);
+  }
+
+  void logout() {
+    state = UserState.empty();
+  }
+
+  @override
+  Map<String, dynamic>? toJson(UserState state) => state.toJson();
+
+  @override
+  UserState? fromJson(Map<String, dynamic> json) {
+    try {
+      return UserState.fromJson(json);
+    } catch (e) {
+      return null; // Se falhar, usa estado inicial
+    }
+  }
+}
+```
+
+### Múltiplas instâncias (multi-account)
+
+```dart
+class UserSessionNotifier extends HydratedNotifier<SessionData> {
+  UserSessionNotifier(this.userId);
+  
+  final String userId;
+  
+  @override
+  String? get storageKeySuffix => userId; // Chave única por usuário
+
+  @override
+  SessionData build() => hydrate() ?? SessionData.empty();
+  
+  // ... toJson/fromJson
+}
+
+// Uso
+final user1Session = NotifierProvider<UserSessionNotifier, SessionData>(
+  () => UserSessionNotifier('user-123'),
+);
+
+final user2Session = NotifierProvider<UserSessionNotifier, SessionData>(
+  () => UserSessionNotifier('user-456'),
+);
+```
+
+### Debounce para otimizar performance
+
+```dart
+class SearchQueryNotifier extends HydratedNotifier<String> {
+  @override
+  Duration get writeDebounce => const Duration(milliseconds: 500);
+
+  @override
+  String build() => hydrate() ?? '';
+
+  void setQuery(String query) => state = query;
+
+  @override
+  Map<String, dynamic>? toJson(String state) => {'query': state};
+
+  @override
+  String? fromJson(Map<String, dynamic> json) => json['query'] as String?;
+}
+```
+
+### Com AutoDispose
 
 ```dart
 class TempCounterNotifier extends AutoDisposeHydratedNotifier<int> {
@@ -94,29 +241,22 @@ class TempCounterNotifier extends AutoDisposeHydratedNotifier<int> {
 
   void increment() => state++;
 
-  // Serialização
   @override
   Map<String, dynamic>? toJson(int state) => {'value': state};
 
   @override
   int? fromJson(Map<String, dynamic> json) => json['value'] as int?;
 }
+
+final tempCounterProvider = NotifierProvider.autoDispose<TempCounterNotifier, int>(
+  TempCounterNotifier.new,
+);
 ```
 
-### Limpar estado persistido
+### Tratamento de erros customizado
 
 ```dart
-// Em um notifier
-await clear(); // Limpa apenas este notifier
-
-// Globalmente
-await HydratedStorage.instance?.clear(); // Limpa tudo
-```
-
-### Tratamento de erros
-
-```dart
-class SafeCounterNotifier extends HydratedNotifier<int> {
+class SafeNotifier extends HydratedNotifier<int> {
   @override
   int build() => hydrate() ?? 0;
 
@@ -124,64 +264,14 @@ class SafeCounterNotifier extends HydratedNotifier<int> {
 
   @override
   void onError(Object error, StackTrace stackTrace) {
-    // Lidar com erros de serialização/desserialização
-    print('Erro de persistência: $error');
     super.onError(error, stackTrace);
+    
+    // Log para analytics
+    analytics.logError(error, stackTrace);
+    
+    // Mostra snackbar para usuário
+    showErrorSnackbar('Erro ao salvar dados');
   }
-
-  @override
-  Map<String, dynamic>? toJson(int state) => {'value': state};
-
-  @override
-  int? fromJson(Map<String, dynamic> json) {
-    try {
-      return json['value'] as int?;
-    } catch (e) {
-      // Retorna null para usar estado inicial
-      return null;
-    }
-  }
-}
-```
-
-### Chaves de armazenamento customizadas
-
-```dart
-class CustomKeyNotifier extends HydratedNotifier<String> {
-  @override
-  String get storageKey => 'my_custom_key'; // sobrescreve tudo
-
-  @override
-  String? get storageKeySuffix => userId; // vira runtimeType:userId
-  final String userId;
-
-  @override
-  String build() => hydrate() ?? 'Hello World';
-
-  @override
-  Map<String, dynamic>? toJson(String state) => {'text': state};
-
-  @override
-  String? fromJson(Map<String, dynamic> json) => json['text'] as String?;
-}
-```
-
-### Debounce e observabilidade
-
-```dart
-class DebouncedCounter extends HydratedNotifier<int> {
-  @override
-  Duration get writeDebounce => const Duration(milliseconds: 100);
-
-  @override
-  void onPersist(Map<String, dynamic> json) {
-    // Envie para um logger/analytics, se quiser
-  }
-
-  @override
-  int build() => hydrate() ?? 0;
-
-  void increment() => state++;
 
   @override
   Map<String, dynamic>? toJson(int state) => {'value': state};
@@ -191,46 +281,203 @@ class DebouncedCounter extends HydratedNotifier<int> {
 }
 ```
 
-### Isolates e Hive
+### Hook de observabilidade
 
-Hive não é seguro para múltiplos isolates usando a mesma box. Em testes, rode em single-isolate ou use `IsolatedHive`. Caso contrário, você verá avisos de “HIVE MULTI-ISOLATE RISK DETECTED”.
+```dart
+class TrackedNotifier extends HydratedNotifier<int> {
+  @override
+  int build() => hydrate() ?? 0;
 
-## Exemplo completo
+  void increment() => state++;
 
-Veja o [exemplo completo](example/) para uma aplicação Flutter funcional.
+  @override
+  void onPersist(Map<String, dynamic> json) {
+    // Enviar evento para analytics
+    analytics.track('state_persisted', properties: {
+      'notifier': runtimeType.toString(),
+      'value': json['value'],
+    });
+  }
 
-## Additional information
+  @override
+  Map<String, dynamic>? toJson(int state) => {'value': state};
 
-### Arquitetura
+  @override
+  int? fromJson(Map<String, dynamic> json) => json['value'] as int?;
+}
+```
 
-O pacote usa mixins para adicionar funcionalidade de persistência aos seus notifiers:
+## 🔧 Métodos Úteis
 
-- `HydratedMixin`: Para `Notifier`
-- `AutoDisposeHydratedMixin`: Para `AutoDisposeNotifier`
+### Limpar estado persistido
 
-### Backend de armazenamento
+```dart
+// Limpar estado de um notifier específico
+await ref.read(counterProvider.notifier).clear();
 
-Por padrão, usa Hive como backend, mas a interface `HydratedStorage` permite implementar outros backends se necessário.
+// Limpar todo o storage
+await HydratedStorage.instance?.clear();
+```
 
-### Considerações de performance
+### Chaves de storage customizadas
 
-- A serialização/desserialização acontece apenas quando necessário
-- Operações de escrita são sincronizadas para evitar condições de corrida
-- O estado é salvo automaticamente quando o notifier é disposed
+```dart
+class MyNotifier extends HydratedNotifier<int> {
+  // Opção 1: Sobrescrever completamente
+  @override
+  String get storageKey => 'my_custom_key';
 
-### Limitações
+  // Opção 2: Adicionar sufixo (vira 'MyNotifier:suffix')
+  @override
+  String? get storageKeySuffix => 'user_${userId}';
 
-- O estado deve ser serializável para JSON
-- Funciona apenas com notifiers (não com providers simples)
+  // Opção 3: Mudar separador (vira 'MyNotifier-suffix')
+  @override
+  String get storageKeySeparator => '-';
+  
+  // ...
+}
+```
 
-## Contributing
+## ⚙️ Configurações Avançadas
 
-Contribuições são bem-vindas! Por favor, leia as [diretrizes de contribuição](CONTRIBUTING.md) antes de submeter um PR.
+### Custom storage backend
 
-## Issues
+```dart
+class MyCustomStorage implements HydratedStorage {
+  @override
+  dynamic read(String key) {
+    // Implementar leitura
+  }
 
-Encontrou um bug? [Abra uma issue](https://github.com/seu-usuario/hydrated_riverpod/issues) no GitHub.
+  @override
+  Future<void> write(String key, dynamic value) async {
+    // Implementar escrita
+  }
 
-## License
+  // ... outros métodos
+}
 
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+// Usar
+HydratedStorage.instance = MyCustomStorage();
+```
+
+### Box customizada do Hive
+
+```dart
+final storage = await HiveHydratedStorage.build(
+  storageDirectory: appDir.path,
+  boxName: 'my_custom_box', // Nome customizado
+);
+```
+
+## 🎯 Boas Práticas
+
+### ✅ DO
+
+```dart
+// ✅ Use hydrate() no build()
+@override
+int build() => hydrate() ?? 0;
+
+// ✅ Forneça fallback com ??
+@override
+UserState build() => hydrate() ?? UserState.initial();
+
+// ✅ Trate erros em fromJson
+@override
+User? fromJson(Map<String, dynamic> json) {
+  try {
+    return User.fromJson(json);
+  } catch (e) {
+    return null; // Usa estado inicial
+  }
+}
+
+// ✅ Use debounce para estados que mudam rapidamente
+@override
+Duration get writeDebounce => const Duration(milliseconds: 300);
+```
+
+### ❌ DON'T
+
+```dart
+// ❌ Não ignore hydrate()
+@override
+int build() => 0; // Estado anterior será perdido!
+
+// ❌ Não faça operações pesadas em toJson/fromJson
+@override
+Map<String, dynamic>? toJson(State state) {
+  await heavyComputation(); // ❌ toJson é síncrono!
+  return state.toJson();
+}
+
+// ❌ Não persista dados sensíveis sem criptografia
+@override
+Map<String, dynamic>? toJson(State state) {
+  return {'password': state.password}; // ❌ Inseguro!
+}
+```
+
+## 🐛 Troubleshooting
+
+### Estado não está persistindo
+
+1. Verifique se `HydratedStorage.instance` foi inicializado
+2. Certifique-se de chamar `hydrate()` no `build()`
+3. Verifique se `toJson()` está retornando um Map válido
+4. Confirme que o dispose está sendo chamado
+
+### Erro "HydratedStorage is not initialized"
+
+Você esqueceu de inicializar o storage no `main()`:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final storage = await HiveHydratedStorage.build(
+    storageDirectory: (await getApplicationDocumentsDirectory()).path,
+  );
+  HydratedStorage.instance = storage; // ← Não esqueça!
+  
+  runApp(MyApp());
+}
+```
+
+### Problemas com isolates
+
+Hive não suporta múltiplos isolates na mesma box. Se você vir avisos sobre "MULTI-ISOLATE RISK", considere:
+- Usar boxes diferentes por isolate
+- Usar `IsolatedHive` em testes
+- Executar testes em modo single-isolate
+
+## 📊 Comparação com outras soluções
+
+| Feature | hydrated_riverpod | shared_preferences | hydrated_bloc |
+|---------|-------------------|-------------------|---------------|
+| Auto-persist | ✅ | ❌ | ✅ |
+| Type-safe | ✅ | ❌ | ✅ |
+| Debounce | ✅ | ❌ | ❌ |
+| Riverpod integration | ✅ | ❌ | ❌ |
+| Zero boilerplate | ✅ | ❌ | ✅ |
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## 📄 License
+
+MIT License - veja [LICENSE](LICENSE) para detalhes.
+
+## 🙏 Agradecimentos
+
+Inspirado por:
+- [hydrated_bloc](https://pub.dev/packages/hydrated_bloc) - pela API elegante
+- [riverpod](https://pub.dev/packages/riverpod) - pelo excelente gerenciamento de estado
+- [hive](https://pub.dev/packages/hive_ce) - pelo storage rápido e confiável
+
+---
+
+Feito com ❤️ para a comunidade Flutter/Riverpod

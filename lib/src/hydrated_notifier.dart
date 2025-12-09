@@ -30,18 +30,7 @@ import 'storage_exception.dart';
 /// }
 /// ```
 /// {@endtemplate}
-mixin HydratedMixin<State> on Notifier<State> {
-  HydratedStorage get _storage {
-    final storage = HydratedStorage.instance;
-    if (storage == null) {
-      throw StorageException(
-        'HydratedStorage is not initialized. '
-        'Please call HydratedStorage.instance = storage before using HydratedMixin',
-      );
-    }
-    return storage;
-  }
-
+mixin HydratedMixinBase<State> on Notifier<State> {
   /// Storage key for this notifier.
   /// Customize via [storageKeySuffix] or override this getter entirely.
   @protected
@@ -181,8 +170,9 @@ mixin HydratedMixin<State> on Notifier<State> {
     }
   }
 
+  @override
   @protected
-  bool updateShouldNotify(State previous, State current) => previous != current;
+  bool updateShouldNotify(State previous, State next) => previous != next;
 
   /// Called when an error occurs during serialization/deserialization
   @protected
@@ -201,173 +191,41 @@ mixin HydratedMixin<State> on Notifier<State> {
     removeFromCache(storageKey);
     await _storage.delete(storageKey);
   }
+
+  HydratedStorage get _storage;
+}
+
+mixin HydratedMixin<State> on Notifier<State> {
+  @override
+  HydratedStorage get _storage {
+    final storage = HydratedStorage.instance;
+    if (storage == null) {
+      throw const StorageException(
+        'HydratedStorage is not initialized. '
+        'Please call HydratedStorage.instance = storage before using HydratedMixin',
+      );
+    }
+    return storage;
+  }
 }
 
 /// Base class for hydrated notifiers with Notifier
 abstract class HydratedNotifier<State> extends Notifier<State>
-    with HydratedMixin<State> {}
+    with HydratedMixin<State>, HydratedMixinBase<State> {}
 
-/// Mixin for AutoDisposeNotifier
 mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
-  /// Override to provide custom key, defaults to runtimeType
-  @protected
-  String get storageKey {
-    final suffix = storageKeySuffix;
-    if (suffix == null || suffix.isEmpty) return baseStorageKey;
-    return '$baseStorageKey$storageKeySeparator$suffix';
-  }
-
-  @protected
-  String get baseStorageKey => runtimeType.toString();
-
-  @protected
-  String get storageKeySeparator => ':';
-
-  @protected
-  String? get storageKeySuffix => null;
-
+  @override
   HydratedStorage get _storage {
     final storage = HydratedStorage.instance;
     if (storage == null) {
-      throw StorageException(
+      throw const StorageException(
         'HydratedStorage is not initialized.',
       );
     }
     return storage;
   }
-
-  @protected
-  Map<String, dynamic>? toJson(State state);
-
-  @protected
-  State? fromJson(Map<String, dynamic> json);
-
-  @protected
-  Duration get writeDebounce => Duration.zero;
-
-  @protected
-  void onPersist(Map<String, dynamic> json) {}
-
-  Timer? _debounceTimer;
-  Map<String, dynamic>? _pendingPersist;
-  bool _disposeRegistered = false;
-  static const _equality = DeepCollectionEquality();
-
-  void _registerDispose() {
-    if (_disposeRegistered) return;
-    _disposeRegistered = true;
-    ref.onDispose(() {
-      _debounceTimer?.cancel();
-      final payload = _pendingPersist;
-      _pendingPersist = null;
-      if (payload != null) {
-        _flushPending(payload);
-      }
-    });
-  }
-
-  @protected
-  State? hydrate() {
-    _registerDispose();
-    return _loadState();
-  }
-
-  State? _loadState() {
-    try {
-      final cached = readFromCache(storageKey);
-      if (cached != null) {
-        return fromJson(Map<String, dynamic>.from(cached));
-      }
-
-      final json = _storage.read(storageKey);
-      if (json == null) return null;
-      if (json is Map) {
-        final mapped = Map<String, dynamic>.from(json);
-        writeToCache(storageKey, mapped);
-        return fromJson(mapped);
-      }
-      return null;
-    } catch (error, stackTrace) {
-      onError(error, stackTrace);
-      return null;
-    }
-  }
-
-  void _flushPending(Map<String, dynamic> payload) {
-    try {
-      writeToCache(storageKey, payload);
-      _storage.write(storageKey, payload);
-      onPersist(payload);
-    } catch (error, stackTrace) {
-      onError(error, stackTrace);
-    }
-  }
-
-  void _saveState(State state) {
-    try {
-      _registerDispose();
-      final json = toJson(state);
-      if (json == null) return;
-
-      final mapped = Map<String, dynamic>.from(json as Map);
-      final previous = readFromCache(storageKey);
-      if (previous != null && _equality.equals(previous, mapped)) {
-        return;
-      }
-
-      final debounce = writeDebounce;
-      _pendingPersist = mapped;
-
-      if (debounce == Duration.zero) {
-        _pendingPersist = null;
-        _flushPending(mapped);
-        return;
-      }
-
-      writeToCache(storageKey, mapped);
-      _debounceTimer?.cancel();
-      _debounceTimer = Timer(debounce, () {
-        final payload = _pendingPersist;
-        _pendingPersist = null;
-        if (payload != null) {
-          _flushPending(payload);
-        }
-      });
-    } catch (error, stackTrace) {
-      onError(error, stackTrace);
-    }
-  }
-
-  @override
-  set state(State value) {
-    final previous = super.state;
-    super.state = value;
-
-    if (updateShouldNotify(previous, value)) {
-      _saveState(value);
-    }
-  }
-
-  @protected
-  bool updateShouldNotify(State previous, State current) => previous != current;
-
-  @protected
-  @mustCallSuper
-  void onError(Object error, StackTrace stackTrace) {
-    developer.log(
-      'HydratedRiverpod error: $error',
-      name: 'HydratedRiverpod',
-      error: error,
-      stackTrace: stackTrace,
-    );
-  }
-
-  Future<void> clear() async {
-    removeFromCache(storageKey);
-    await _storage.delete(storageKey);
-  }
 }
 
 /// Base class for auto-dispose hydrated notifiers
 abstract class AutoDisposeHydratedNotifier<State> extends Notifier<State>
-    with AutoDisposeHydratedMixin<State> {}
+    with AutoDisposeHydratedMixin<State>, HydratedMixinBase<State> {}

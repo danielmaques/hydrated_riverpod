@@ -78,7 +78,7 @@ void main() {
       expect(container1.read(counterProvider), equals(2));
 
       // Aguarda um pouco para garantir que o estado seja salvo
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Dispose para salvar
       container1.dispose();
@@ -119,8 +119,10 @@ void main() {
       container1.dispose();
 
       final container2 = ProviderContainer();
-      expect(container2.read(counterProvider),
-          equals(0)); // Deve voltar ao estado inicial
+      expect(
+        container2.read(counterProvider),
+        equals(0),
+      ); // Deve voltar ao estado inicial
       container2.dispose();
     });
 
@@ -133,8 +135,10 @@ void main() {
 
       // Notifier que sempre falha na serialização
       container.read(failingProvider.notifier).increment();
-      expect(container.read(failingProvider),
-          equals(1)); // Deve funcionar mesmo com erro
+      expect(
+        container.read(failingProvider),
+        equals(1),
+      ); // Deve funcionar mesmo com erro
 
       container.dispose();
     });
@@ -320,7 +324,7 @@ class InMemoryHydratedStorage implements HydratedStorage {
   }
 
   @override
-  read(String key) => store[key];
+  dynamic read(String key) => store[key];
 
   @override
   Future<void> write(String key, value) async {

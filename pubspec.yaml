@@ -1,21 +1,30 @@
 name: hydrated_riverpod
-description: Riverpod extension that automatically persists and restores state
-version: 1.0.0
-homepage: https://github.com/seu-usuario/hydrated_riverpod
+description: Riverpod extension that automatically persists and restores state using Hive storage backend.
+version: 0.1.0
+repository: https://github.com/seu-usuario/hydrated_riverpod
+issue_tracker: https://github.com/seu-usuario/hydrated_riverpod/issues
+documentation: https://github.com/seu-usuario/hydrated_riverpod#readme
+
+topics:
+  - riverpod
+  - state-management
+  - persistence
+  - hive
+  - flutter
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  riverpod: ^3.0.3
+  collection: ^1.18.0
   hive_ce: ^2.6.0
   meta: ^1.15.0
+  riverpod: ^3.0.3
   synchronized: ^3.3.0+3
-  collection: ^1.18.0
 
 dev_dependencies:
-  test: ^1.25.8
-  mocktail: ^1.0.4
-  path: ^1.9.0
   crypto: ^3.0.5
   lints: ^4.0.0
+  mocktail: ^1.0.4
+  path: ^1.9.0
+  test: ^1.25.8

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+<defs>
+  <!-- Gradientes mais vibrantes -->
+  <linearGradient id="dropletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" style="stop-color:#42A5F5;stop-opacity:1" />
+    <stop offset="50%" style="stop-color:#2196F3;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
+  </linearGradient>
+  
+  <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" style="stop-color:#00BCD4;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#0097A7;stop-opacity:1" />
+  </linearGradient>
+  
+  <!-- Sombra suave -->
+  <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+    <feOffset dx="0" dy="2" result="offsetblur"/>
+    <feComponentTransfer>
+      <feFuncA type="linear" slope="0.2"/>
+    </feComponentTransfer>
+    <feMerge>
+      <feMergeNode/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  
+  <!-- Brilho interno -->
+  <radialGradient id="shine" cx="30%" cy="30%">
+    <stop offset="0%" style="stop-color:white;stop-opacity:0.4" />
+    <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+  </radialGradient>
+</defs>
+
+<!-- Gota d'água principal -->
+<g transform="translate(20, 10)" filter="url(#dropShadow)">
+  <!-- Forma da gota -->
+  <path d="M40 8 Q40 8 58 38 Q72 62 40 88 Q8 62 22 38 Q40 8 40 8 Z"
+        fill="url(#dropletGrad)" />
+  
+  <!-- Brilho interno -->
+  <ellipse cx="32" cy="35" rx="15" ry="20" 
+           fill="url(#shine)" />
+  
+  <!-- Ícone de refresh/persistência -->
+  <g transform="translate(40, 52)">
+    <!-- Círculo de refresh -->
+    <path d="M0 -15 Q10 -15 12 -8 L9 -8 Q8 -11 0 -11 Q-9 -11 -9 0 Q-9 11 0 11 Q7 11 9 8 L12 10 Q9 15 0 15 Q-14 15 -14 0 Q-14 -15 0 -15"
+          fill="white" opacity="0.95" stroke="white" stroke-width="0.5"/>
+    <!-- Seta -->
+    <polygon points="12,-10 17,-5 7,-5" fill="white" opacity="0.95"/>
+  </g>
+  
+  <!-- Ondas decorativas na base -->
+  <path d="M12 92 Q22 88 32 92 Q42 96 52 92 Q62 88 72 92"
+        stroke="url(#accentGrad)" stroke-width="2.5" fill="none" 
+        opacity="0.6" stroke-linecap="round"/>
+  <path d="M17 98 Q27 94 37 98 Q47 102 57 98 Q67 94 77 98"
+        stroke="url(#accentGrad)" stroke-width="2" fill="none" 
+        opacity="0.4" stroke-linecap="round"/>
+</g>
+
+<!-- Texto -->
+<g transform="translate(108, 60)">
+  <!-- "Hydrated" -->
+  <text font-family="'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif"
+        font-size="34" font-weight="700" fill="#1565C0" letter-spacing="-0.5">
+    Hydrated
+  </text>
+  
+  <!-- "Riverpod" -->
+  <text x="157" 
+        font-family="'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif"
+        font-size="34" font-weight="400" fill="#00838F" letter-spacing="-0.3">
+    Riverpod
+  </text>
+</g>
+
+<!-- Tagline com melhor contraste -->
+<text x="108" y="87"
+      font-family="'SF Pro Text', 'Segoe UI', system-ui, -apple-system, sans-serif"
+      font-size="12.5" font-weight="500" fill="#546E7A" letter-spacing="0.3">
+  Automatic state persistence for Riverpod
+</text>
+
+<!-- Pequeno detalhe: ponto de destaque -->
+<circle cx="98" cy="25" r="3" fill="#00BCD4" opacity="0.6"/>
+</svg>
