@@ -1,0 +1,55 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+    - ".dart_tool/**"
+  
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+  errors:
+    invalid_annotation_target: ignore
+    todo: ignore
+    lines_longer_than_80_chars: ignore
+    
+linter:
+  rules:
+    prefer_const_constructors: false 
+    prefer_const_constructors_in_immutables: false
+    
+    always_declare_return_types: true
+    always_use_package_imports: true
+    avoid_dynamic_calls: true
+    avoid_print: true
+    avoid_redundant_argument_values: true
+    avoid_unused_constructor_parameters: true
+    avoid_void_async: true
+    cancel_subscriptions: true
+    cascade_invocations: false  
+    cast_nullable_to_non_nullable: true
+    close_sinks: true
+    directives_ordering: true
+    eol_at_end_of_file: true
+    lines_longer_than_80_chars: false  
+    no_adjacent_strings_in_list: true
+    no_default_cases_in_exhaustive_switches: true
+    prefer_final_fields: true
+    prefer_final_in_for_each: true
+    prefer_final_locals: true
+    prefer_single_quotes: true
+    public_member_api_docs: false
+    require_trailing_commas: true
+    sort_constructors_first: true
+    unawaited_futures: true
+    unnecessary_await_in_return: true
+    unnecessary_lambdas: true
+    unnecessary_null_checks: true
+    use_colored_box: true
+    use_enums: true
+    use_named_constants: true
+    use_super_parameters: true

@@ -2,52 +2,56 @@
 
 [![pub package](https://img.shields.io/pub/v/hydrated_riverpod.svg)](https://pub.dev/packages/hydrated_riverpod)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/danielmaques/hydrated_riverpod/workflows/CI/badge.svg)](https://github.com/danielmaques/hydrated_riverpod/actions)
+[![codecov](https://codecov.io/gh/danielmaques/hydrated_riverpod/branch/main/graph/badge.svg)](https://codecov.io/gh/danielmaques/hydrated_riverpod)
+[![Pub Points](https://img.shields.io/pub/points/hydrated_riverpod)](https://pub.dev/packages/hydrated_riverpod/score)
+[![Pub Popularity](https://img.shields.io/pub/popularity/hydrated_riverpod)](https://pub.dev/packages/hydrated_riverpod)
 
-Uma extensão do Riverpod que automaticamente persiste e restaura o estado dos seus notifiers usando Hive como backend de armazenamento.
+An extension for Riverpod that automatically persists and restores the state of your notifiers using Hive as the storage backend.
 
-Inspirado no [hydrated_bloc](https://pub.dev/packages/hydrated_bloc), mas feito especificamente para Riverpod.
+Inspired by [hydrated_bloc](https://pub.dev/packages/hydrated_bloc), but built specifically for Riverpod.
 
 ## ✨ Features
 
-- 🔄 **Persistência automática**: Salva e restaura o estado automaticamente
-- 🏗️ **API familiar**: Use `build()` como Riverpod normal, apenas chame `hydrate()`
-- 🗄️ **Backend Hive**: Armazenamento local eficiente e confiável
-- 🛡️ **Tratamento de erros**: Lida graciosamente com erros de serialização
-- 🔒 **Thread-safe**: Operações sincronizadas com `synchronized`
-- ⚡ **Debounce integrado**: Otimize escritas frequentes
-- 🧹 **Fácil limpeza**: Métodos para limpar estado persistido
-- 🎯 **Cache in-memory**: Evita race conditions em writes assíncronos
+- 🔄 **Automatic persistence**: Saves and restores state automatically
+- 🏗️ **Familiar API**: Use `build()` like regular Riverpod, just call `hydrate()`
+- 🗄️ **Hive backend**: Efficient and reliable local storage
+- 🛡️ **Error handling**: Gracefully handles serialization errors
+- 🔒 **Thread-safe**: Operations synchronized with `synchronized`
+- ⚡ **Built-in debounce**: Optimize frequent writes
+- 🧹 **Easy cleanup**: Methods to clear persisted state
+- 🎯 **In-memory cache**: Avoid race conditions on async writes
 
-## 📦 Instalação
+## 📦 Installation
 
-Adicione ao seu `pubspec.yaml`:
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
   hydrated_riverpod: ^0.1.0
-  riverpod: ^3.0.3  # ou flutter_riverpod para Flutter
+  riverpod: ^3.0.3  # or flutter_riverpod for Flutter
 ```
 
-Para **Flutter**, você também precisa do `path_provider` para obter o diretório de documentos:
+For **Flutter**, you also need `path_provider` to get the documents directory:
 
 ```yaml
 dependencies:
-  path_provider: ^2.1.3  # Apenas para Flutter
+  path_provider: ^2.1.3  # Flutter only
 ```
 
-> **💡 Nota**: `hive_ce` já está incluído como dependência do `hydrated_riverpod`, você não precisa adicioná-lo!
+> **💡 Note**: `hive_ce` is already included as a dependency of `hydrated_riverpod`, you don't need to add it!
 
-Então rode:
+Then run:
 
 ```bash
-dart pub get  # ou flutter pub get
+dart pub get  # or flutter pub get
 ```
 
 ## 🚀 Quick Start
 
-### 1. Configure o storage (apenas uma vez no main)
+### 1. Configure storage (only once in main)
 
-**Para Flutter:**
+**For Flutter:**
 
 ```dart
 import 'package:flutter/material.dart';
@@ -58,10 +62,10 @@ import 'package:path_provider/path_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Obter diretório para storage
+  // Get directory for storage
   final appDir = await getApplicationDocumentsDirectory();
   
-  // Inicializar storage
+  // Initialize storage
   final storage = await HiveHydratedStorage.build(
     storageDirectory: appDir.path,
   );
@@ -71,7 +75,7 @@ Future<void> main() async {
 }
 ```
 
-**Para Dart puro:**
+**For pure Dart:**
 
 ```dart
 import 'dart:io';
@@ -79,18 +83,18 @@ import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
 
 Future<void> main() async {
-  // Inicializar storage
+  // Initialize storage
   final storage = await HiveHydratedStorage.build(
     storageDirectory: Directory.current.path,
   );
   HydratedStorage.instance = storage;
 
   final container = ProviderContainer();
-  // ... seu código
+  // ... your code
 }
 ```
 
-### 2. Crie um notifier hidratado
+### 2. Create a hydrated notifier
 
 ```dart
 import 'package:riverpod/riverpod.dart';
@@ -98,17 +102,17 @@ import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 
 class CounterNotifier extends HydratedNotifier<int> {
   @override
-  int build() => hydrate() ?? 0; // Restaura estado ou usa 0 como padrão
+  int build() => hydrate() ?? 0; // Restore state or fall back to 0
 
   void increment() => state++;
   void decrement() => state--;
   void reset() => state = 0;
 
-  // Como serializar
+  // How to serialize
   @override
   Map<String, dynamic>? toJson(int state) => {'value': state};
 
-  // Como desserializar
+  // How to deserialize
   @override
   int? fromJson(Map<String, dynamic> json) => json['value'] as int?;
 }
@@ -119,7 +123,7 @@ final counterProvider = NotifierProvider<CounterNotifier, int>(
 );
 ```
 
-### 3. Use normalmente
+### 3. Use it as usual
 
 ```dart
 class CounterPage extends ConsumerWidget {
@@ -140,11 +144,11 @@ class CounterPage extends ConsumerWidget {
 }
 ```
 
-**Pronto!** O estado agora persiste automaticamente. Feche e reabra o app - o contador estará lá! 🎉
+**Done!** State now persists automatically. Close and reopen the app—the counter will still be there! 🎉
 
-## 📚 Exemplos Avançados
+## 📚 Advanced Examples
 
-### Estado complexo com classes
+### Complex state with classes
 
 ```dart
 class TodoNotifier extends HydratedNotifier<List<Todo>> {
@@ -176,7 +180,7 @@ class TodoNotifier extends HydratedNotifier<List<Todo>> {
 }
 ```
 
-### Com Freezed/json_serializable
+### With Freezed/json_serializable
 
 ```dart
 @freezed
@@ -211,13 +215,13 @@ class UserNotifier extends HydratedNotifier<UserState> {
     try {
       return UserState.fromJson(json);
     } catch (e) {
-      return null; // Se falhar, usa estado inicial
+      return null; // If it fails, fall back to the initial state
     }
   }
 }
 ```
 
-### Múltiplas instâncias (multi-account)
+### Multiple instances (multi-account)
 
 ```dart
 class UserSessionNotifier extends HydratedNotifier<SessionData> {
@@ -226,7 +230,7 @@ class UserSessionNotifier extends HydratedNotifier<SessionData> {
   final String userId;
   
   @override
-  String? get storageKeySuffix => userId; // Chave única por usuário
+  String? get storageKeySuffix => userId; // Unique key per user
 
   @override
   SessionData build() => hydrate() ?? SessionData.empty();
@@ -234,7 +238,7 @@ class UserSessionNotifier extends HydratedNotifier<SessionData> {
   // ... toJson/fromJson
 }
 
-// Uso
+// Usage
 final user1Session = NotifierProvider<UserSessionNotifier, SessionData>(
   () => UserSessionNotifier('user-123'),
 );
@@ -244,7 +248,7 @@ final user2Session = NotifierProvider<UserSessionNotifier, SessionData>(
 );
 ```
 
-### Debounce para otimizar performance
+### Debounce to optimize performance
 
 ```dart
 class SearchQueryNotifier extends HydratedNotifier<String> {
@@ -264,7 +268,7 @@ class SearchQueryNotifier extends HydratedNotifier<String> {
 }
 ```
 
-### Com AutoDispose
+### With AutoDispose
 
 ```dart
 class TempCounterNotifier extends AutoDisposeHydratedNotifier<int> {
@@ -285,7 +289,7 @@ final tempCounterProvider = NotifierProvider.autoDispose<TempCounterNotifier, in
 );
 ```
 
-### Tratamento de erros customizado
+### Custom error handling
 
 ```dart
 class SafeNotifier extends HydratedNotifier<int> {
@@ -298,11 +302,11 @@ class SafeNotifier extends HydratedNotifier<int> {
   void onError(Object error, StackTrace stackTrace) {
     super.onError(error, stackTrace);
     
-    // Log para analytics
+    // Log to analytics
     analytics.logError(error, stackTrace);
     
-    // Mostra snackbar para usuário
-    showErrorSnackbar('Erro ao salvar dados');
+    // Show a snackbar to the user
+    showErrorSnackbar('Error saving data');
   }
 
   @override
@@ -313,7 +317,7 @@ class SafeNotifier extends HydratedNotifier<int> {
 }
 ```
 
-### Hook de observabilidade
+### Observability hook
 
 ```dart
 class TrackedNotifier extends HydratedNotifier<int> {
@@ -324,7 +328,7 @@ class TrackedNotifier extends HydratedNotifier<int> {
 
   @override
   void onPersist(Map<String, dynamic> json) {
-    // Enviar evento para analytics
+    // Send event to analytics
     analytics.track('state_persisted', properties: {
       'notifier': runtimeType.toString(),
       'value': json['value'],
@@ -339,31 +343,31 @@ class TrackedNotifier extends HydratedNotifier<int> {
 }
 ```
 
-## 🔧 Métodos Úteis
+## 🔧 Useful Methods
 
-### Limpar estado persistido
+### Clear persisted state
 
 ```dart
-// Limpar estado de um notifier específico
+// Clear state for a specific notifier
 await ref.read(counterProvider.notifier).clear();
 
-// Limpar todo o storage
+// Clear the entire storage
 await HydratedStorage.instance?.clear();
 ```
 
-### Chaves de storage customizadas
+### Custom storage keys
 
 ```dart
 class MyNotifier extends HydratedNotifier<int> {
-  // Opção 1: Sobrescrever completamente
+  // Option 1: Override completely
   @override
   String get storageKey => 'my_custom_key';
 
-  // Opção 2: Adicionar sufixo (vira 'MyNotifier:suffix')
+  // Option 2: Add a suffix (becomes 'MyNotifier:suffix')
   @override
   String? get storageKeySuffix => 'user_${userId}';
 
-  // Opção 3: Mudar separador (vira 'MyNotifier-suffix')
+  // Option 3: Change separator (becomes 'MyNotifier-suffix')
   @override
   String get storageKeySeparator => '-';
   
@@ -371,7 +375,7 @@ class MyNotifier extends HydratedNotifier<int> {
 }
 ```
 
-## ⚙️ Configurações Avançadas
+## ⚙️ Advanced Configuration
 
 ### Custom storage backend
 
@@ -379,54 +383,54 @@ class MyNotifier extends HydratedNotifier<int> {
 class MyCustomStorage implements HydratedStorage {
   @override
   dynamic read(String key) {
-    // Implementar leitura
+    // Implement reading
   }
 
   @override
   Future<void> write(String key, dynamic value) async {
-    // Implementar escrita
+    // Implement writing
   }
 
-  // ... outros métodos
+  // ... other methods
 }
 
-// Usar
+// Use
 HydratedStorage.instance = MyCustomStorage();
 ```
 
-### Box customizada do Hive
+### Custom Hive box
 
 ```dart
 final storage = await HiveHydratedStorage.build(
   storageDirectory: appDir.path,
-  boxName: 'my_custom_box', // Nome customizado
+  boxName: 'my_custom_box', // Custom name
 );
 ```
 
-## 🎯 Boas Práticas
+## 🎯 Best Practices
 
 ### ✅ DO
 
 ```dart
-// ✅ Use hydrate() no build()
+// ✅ Use hydrate() in build()
 @override
 int build() => hydrate() ?? 0;
 
-// ✅ Forneça fallback com ??
+// ✅ Provide a fallback with ??
 @override
 UserState build() => hydrate() ?? UserState.initial();
 
-// ✅ Trate erros em fromJson
+// ✅ Handle errors in fromJson
 @override
 User? fromJson(Map<String, dynamic> json) {
   try {
     return User.fromJson(json);
   } catch (e) {
-    return null; // Usa estado inicial
+    return null; // Falls back to initial state
   }
 }
 
-// ✅ Use debounce para estados que mudam rapidamente
+// ✅ Use debounce for fast-changing state
 @override
 Duration get writeDebounce => const Duration(milliseconds: 300);
 ```
@@ -434,36 +438,36 @@ Duration get writeDebounce => const Duration(milliseconds: 300);
 ### ❌ DON'T
 
 ```dart
-// ❌ Não ignore hydrate()
+// ❌ Don't skip hydrate()
 @override
-int build() => 0; // Estado anterior será perdido!
+int build() => 0; // Previous state will be lost!
 
-// ❌ Não faça operações pesadas em toJson/fromJson
+// ❌ Don't do heavy work in toJson/fromJson
 @override
 Map<String, dynamic>? toJson(State state) {
-  await heavyComputation(); // ❌ toJson é síncrono!
+  await heavyComputation(); // ❌ toJson is synchronous!
   return state.toJson();
 }
 
-// ❌ Não persista dados sensíveis sem criptografia
+// ❌ Don't persist sensitive data without encryption
 @override
 Map<String, dynamic>? toJson(State state) {
-  return {'password': state.password}; // ❌ Inseguro!
+  return {'password': state.password}; // ❌ Not secure!
 }
 ```
 
 ## 🐛 Troubleshooting
 
-### Estado não está persistindo
+### State is not persisting
 
-1. Verifique se `HydratedStorage.instance` foi inicializado no `main()`
-2. Certifique-se de chamar `hydrate()` no `build()`
-3. Verifique se `toJson()` está retornando um Map válido
-4. Confirme que o dispose está sendo chamado
+1. Make sure `HydratedStorage.instance` was initialized in `main()`
+2. Be sure to call `hydrate()` in `build()`
+3. Verify `toJson()` returns a valid Map
+4. Confirm dispose is being called
 
-### Erro "HydratedStorage is not initialized"
+### Error "HydratedStorage is not initialized"
 
-Você esqueceu de inicializar o storage no `main()`:
+You forgot to initialize storage in `main()`:
 
 ```dart
 Future<void> main() async {
@@ -473,20 +477,20 @@ Future<void> main() async {
   final storage = await HiveHydratedStorage.build(
     storageDirectory: appDir.path,
   );
-  HydratedStorage.instance = storage; // ← Não esqueça!
+  HydratedStorage.instance = storage; // ← Don't forget!
   
   runApp(MyApp());
 }
 ```
 
-### Problemas com isolates
+### Issues with isolates
 
-Hive não suporta múltiplos isolates na mesma box. Se você vir avisos sobre "MULTI-ISOLATE RISK", considere:
-- Usar boxes diferentes por isolate
-- Usar `IsolatedHive` em testes
-- Executar testes em modo single-isolate
+Hive does not support multiple isolates on the same box. If you see warnings about "MULTI-ISOLATE RISK", consider:
+- Using different boxes per isolate
+- Using `IsolatedHive` in tests
+- Running tests in single-isolate mode
 
-## 📊 Comparação com outras soluções
+## 📊 Comparison with other solutions
 
 | Feature | hydrated_riverpod | shared_preferences | hydrated_bloc |
 |---------|-------------------|-------------------|---------------|
@@ -496,21 +500,21 @@ Hive não suporta múltiplos isolates na mesma box. Se você vir avisos sobre "M
 | Riverpod integration | ✅ | ❌ | ❌ |
 | Zero boilerplate | ✅ | ❌ | ✅ |
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Contribuições são bem-vindas! Por favor, abra uma issue ou PR.
+Contributions are welcome! Please open an issue or PR.
 
 ## 📄 License
 
-MIT License - veja [LICENSE](LICENSE) para detalhes.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 Agradecimentos
+## 🙏 Thanks
 
-Inspirado por:
-- [hydrated_bloc](https://pub.dev/packages/hydrated_bloc) - pela API elegante
-- [riverpod](https://pub.dev/packages/riverpod) - pelo excelente gerenciamento de estado
-- [hive](https://pub.dev/packages/hive_ce) - pelo storage rápido e confiável
+Inspired by:
+- [hydrated_bloc](https://pub.dev/packages/hydrated_bloc) - for the elegant API
+- [riverpod](https://pub.dev/packages/riverpod) - for the great state management
+- [hive](https://pub.dev/packages/hive_ce) - for fast, reliable storage
 
 ---
 
-Feito com ❤️ para a comunidade Flutter/Riverpod
+Made with ❤️ for the Flutter/Riverpod community

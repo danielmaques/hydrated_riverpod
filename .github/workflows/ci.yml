@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        sdk: [3.0.0, stable]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+      
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+      
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+      
+      - name: Run tests
+        run: dart test --coverage=coverage
+      
+      - name: Check pub publish warnings
+        run: dart pub publish --dry-run
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Generate coverage
+        run: dart test --coverage=coverage
+      
+      - name: Convert coverage
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+      
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: true
+
+  pana:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Install pana
+        run: dart pub global activate pana
+      
+      - name: Run pana
+        run: dart pub global run pana --no-warning --exit-code-threshold 0

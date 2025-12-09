@@ -214,7 +214,6 @@ abstract class HydratedNotifier<State> extends Notifier<State>
     with HydratedMixin<State>, HydratedMixinBase<State> {}
 
 mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
-  @override
   HydratedStorage get _storage {
     final storage = HydratedStorage.instance;
     if (storage == null) {
