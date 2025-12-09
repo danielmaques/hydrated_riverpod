@@ -13,7 +13,7 @@ topics:
   - flutter
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
   collection: ^1.18.0
@@ -24,7 +24,7 @@ dependencies:
 
 dev_dependencies:
   crypto: ^3.0.5
-  lints: ^3.0.0
+  lints: ^6.0.0
   mocktail: ^1.0.4
   path: ^1.9.0
   test: ^1.25.8
