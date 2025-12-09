@@ -195,7 +195,7 @@ mixin HydratedMixinBase<State> on Notifier<State> {
   HydratedStorage get _storage;
 }
 
-mixin HydratedMixin<State> on Notifier<State> {
+mixin HydratedMixin<State> on HydratedMixinBase<State> {
   @override
   HydratedStorage get _storage {
     final storage = HydratedStorage.instance;
@@ -211,9 +211,10 @@ mixin HydratedMixin<State> on Notifier<State> {
 
 /// Base class for hydrated notifiers with Notifier
 abstract class HydratedNotifier<State> extends Notifier<State>
-    with HydratedMixin<State>, HydratedMixinBase<State> {}
+    with HydratedMixinBase<State>, HydratedMixin<State> {}
 
-mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
+mixin AutoDisposeHydratedMixin<State> on HydratedMixinBase<State> {
+  @override
   HydratedStorage get _storage {
     final storage = HydratedStorage.instance;
     if (storage == null) {
@@ -227,4 +228,4 @@ mixin AutoDisposeHydratedMixin<State> on Notifier<State> {
 
 /// Base class for auto-dispose hydrated notifiers
 abstract class AutoDisposeHydratedNotifier<State> extends Notifier<State>
-    with AutoDisposeHydratedMixin<State>, HydratedMixinBase<State> {}
+    with HydratedMixinBase<State>, AutoDisposeHydratedMixin<State> {}
