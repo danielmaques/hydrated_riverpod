@@ -26,4 +26,3 @@ class Todo {
         completed: json['completed'] as bool? ?? false,
       );
 }
-
