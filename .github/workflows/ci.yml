@@ -143,6 +143,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      - name: Remove example directory (Flutter project)
+        run: rm -rf example
+      
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
@@ -163,9 +166,6 @@ jobs:
       
       - name: Install pana
         run: dart pub global activate pana
-      
-      - name: Remove example directory (Flutter project)
-        run: rm -rf example
       
       - name: Run pana analysis
         run: dart pub global run pana --no-warning --exit-code-threshold 0
