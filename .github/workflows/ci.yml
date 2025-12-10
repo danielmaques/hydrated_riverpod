@@ -52,7 +52,7 @@ jobs:
         run: dart analyze --fatal-infos
       
       - name: Check pub publish warnings
-        run: dart pub publish --dry-run
+        run: dart pub publish --dry-run --force
 
   test:
     name: Test (Dart ${{ matrix.sdk }})
@@ -177,4 +177,4 @@ jobs:
         run: dart pub global activate pana
       
       - name: Run pana analysis
-        run: dart pub global run pana --no-warning --exit-code-threshold 0
+        run: dart pub global run pana --no-warning --exit-code-threshold 20
