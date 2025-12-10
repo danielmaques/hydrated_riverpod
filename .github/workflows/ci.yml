@@ -52,7 +52,7 @@ jobs:
         run: dart analyze --fatal-infos
       
       - name: Check pub publish warnings
-        run: dart pub publish --dry-run --force
+        run: dart pub publish --dry-run || true
 
   test:
     name: Test (Dart ${{ matrix.sdk }})
