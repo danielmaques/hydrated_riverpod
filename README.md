@@ -15,6 +15,7 @@ Inspired by [hydrated_bloc](https://pub.dev/packages/hydrated_bloc), but built s
 
 - 🔄 **Automatic persistence**: Saves and restores state automatically
 - 🏗️ **Familiar API**: Use `build()` like regular Riverpod, just call `hydrate()`
+- 🔀 **State migration**: Built-in versioning system for breaking changes
 - 🗄️ **Hive backend**: Efficient and reliable local storage
 - 🛡️ **Error handling**: Gracefully handles serialization errors
 - 🔒 **Thread-safe**: Operations synchronized with `synchronized`
@@ -340,6 +341,83 @@ class TrackedNotifier extends HydratedNotifier<int> {
 
   @override
   int? fromJson(Map<String, dynamic> json) => json['value'] as int?;
+}
+```
+
+### State Migration
+
+Handle breaking changes to your state structure with automatic migration:
+
+```dart
+class UserNotifier extends HydratedNotifier<UserState> {
+  // Increment version when making breaking changes
+  @override
+  int get version => 2;
+
+  @override
+  UserState build() => hydrate() ?? UserState.empty();
+
+  @override
+  Map<String, dynamic>? migrate(Map<String, dynamic> json, int fromVersion) {
+    // Migration from v1 to v2
+    if (fromVersion == 1) {
+      // In v1, we had separate 'firstName' and 'lastName'
+      // In v2, we have a single 'fullName' field
+      return {
+        'fullName': '${json['firstName']} ${json['lastName']}',
+        'email': json['email'],
+        'isLoggedIn': json['isLoggedIn'],
+      };
+    }
+    return json;
+  }
+
+  @override
+  Map<String, dynamic>? toJson(UserState state) => state.toJson();
+
+  @override
+  UserState? fromJson(Map<String, dynamic> json) {
+    try {
+      return UserState.fromJson(json);
+    } catch (e) {
+      return null;
+    }
+  }
+}
+```
+
+**How it works:**
+- The current `version` is automatically saved with your state
+- When loading old state, `migrate()` is called if stored version < current version
+- Return `null` from `migrate()` to discard incompatible data
+- Default version is 1 (no migration needed for existing apps)
+
+**Multi-step migrations:**
+```dart
+@override
+int get version => 3;
+
+@override
+Map<String, dynamic>? migrate(Map<String, dynamic> json, int fromVersion) {
+  var migrated = json;
+
+  // Migrate from v1 to v2
+  if (fromVersion < 2) {
+    migrated = {
+      'count': migrated['counter'], // Renamed field
+      'metadata': migrated['meta'],
+    };
+  }
+
+  // Migrate from v2 to v3
+  if (fromVersion < 3) {
+    migrated = {
+      ...migrated,
+      'timestamp': DateTime.now().toIso8601String(), // New field
+    };
+  }
+
+  return migrated;
 }
 ```
 

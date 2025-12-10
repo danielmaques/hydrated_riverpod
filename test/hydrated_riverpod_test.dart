@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:hive_ce/hive.dart';
-import 'package:riverpod_hydrated/hydrated_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_hydrated/hydrated_riverpod.dart';
 import 'package:test/test.dart';
 
 class TestCounterNotifier extends HydratedNotifier<int> {
@@ -177,8 +177,14 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 70));
       container.dispose();
 
-      expect(memory.store['SuffixNotifier:a'], equals({'value': 1}));
-      expect(memory.store['SuffixNotifier:b'], equals({'value': 2}));
+      expect(
+        memory.store['SuffixNotifier:a'],
+        equals({'value': 1, '__version__': 1}),
+      );
+      expect(
+        memory.store['SuffixNotifier:b'],
+        equals({'value': 2, '__version__': 1}),
+      );
     });
 
     test('should debounce rapid writes', () async {
@@ -204,7 +210,7 @@ void main() {
       container.dispose();
 
       expect(memory.writeCount, 1);
-      expect(memory.store['DebouncedNotifier'], {'value': 4});
+      expect(memory.store['DebouncedNotifier'], {'value': 4, '__version__': 1});
     });
 
     test('should flush pending debounced write on dispose', () async {
@@ -221,7 +227,10 @@ void main() {
       container.dispose();
 
       expect(memory.writeCount, 1);
-      expect(memory.store['DebouncedAutoDisposeNotifier'], {'value': 1});
+      expect(
+        memory.store['DebouncedAutoDisposeNotifier'],
+        {'value': 1, '__version__': 1},
+      );
     });
   });
 

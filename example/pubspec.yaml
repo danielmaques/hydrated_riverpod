@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.0.3
-  hydrated_riverpod:
+  riverpod_hydrated:
     path: ../
   path_provider: ^2.1.5
 

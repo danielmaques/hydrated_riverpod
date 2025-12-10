@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(~/fvm/versions/stable/bin/cache/dart-sdk/bin/dart analyze:*)",
+      "Bash(cat:*)",
+      "Bash(~/fvm/versions/stable/bin/cache/dart-sdk/bin/dart test)",
+      "Bash(~/fvm/versions/stable/bin/cache/dart-sdk/bin/dart test --chain-stack-traces)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

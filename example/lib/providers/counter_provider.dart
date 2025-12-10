@@ -1,5 +1,5 @@
-import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_hydrated/hydrated_riverpod.dart';
 
 /// Simple counter that persists between app restarts
 class CounterNotifier extends HydratedNotifier<int> {

@@ -1,3 +1,33 @@
+## 0.1.2
+
+### Added
+- **🔀 State Migration System**: Automatic versioning and migration support for breaking changes
+  - New `version` getter to define current state structure version (defaults to 1)
+  - New `migrate(json, fromVersion)` method for handling data migrations
+  - Version is automatically saved with state as `__version__` field
+  - Migrations are applied automatically when loading older state
+  - Multi-step migration support for upgrading across multiple versions
+  - Backward compatible: default version is 1, no migration needed for existing apps
+
+### Fixed
+- **🐛 Critical**: Fixed `AutoDisposeHydratedNotifier` to correctly work with Riverpod 3.x
+  - Note: In Riverpod 3.x, AutoDispose is a property of the provider, not the notifier
+  - Both `HydratedNotifier` and `AutoDisposeHydratedNotifier` now extend `Notifier<State>` correctly
+  - All existing code continues to work without changes
+- **🐛 Critical**: Fixed race condition in dispose that could prevent state from being persisted
+  - `ref.onDispose()` is now async and properly awaits write completion
+  - Added `_flushPendingAsync()` method that ensures async writes complete before disposal
+  - Fixes issues with state loss during hot reload and rapid dispose scenarios
+  - Particularly important for AutoDispose notifiers and debounced writes
+
+### Changed
+- Internal implementation now uses separate mixins for better code organization
+  - `HydratedMixinBase<State>` for regular `Notifier<State>`
+  - `AutoDisposeHydratedMixin<State>` for AutoDispose support
+  - Both mixins include full migration support and all features
+
+---
+
 ## 0.1.1
 
 ### Improvements & Refactoring
