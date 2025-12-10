@@ -1,0 +1,19 @@
+# Ignore example directory (Flutter project)
+example/
+
+# IDE files
+.idea/
+.vscode/
+
+# Generated/cache files
+.dart_tool/
+.packages
+build/
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test outputs
+*.log
