@@ -164,5 +164,8 @@ jobs:
       - name: Install pana
         run: dart pub global activate pana
       
+      - name: Remove example directory (Flutter project)
+        run: rm -rf example
+      
       - name: Run pana analysis
-        run: dart pub global run pana --no-warning --exit-code-threshold 0 --no-example
+        run: dart pub global run pana --no-warning --exit-code-threshold 0
