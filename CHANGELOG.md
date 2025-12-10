@@ -1,14 +1,23 @@
-## 0.2.0
+## 0.1.1
 
-### New Features
+### Improvements & Refactoring
 
-- 🔐 **Optional encryption support** - Added `encrypted` and `encryptionKey` parameters to `HiveHydratedStorage.build()` for AES-256 encryption
+**API Changes:**
+- 🔐 Simplified encryption API in `HiveHydratedStorage.build()`
+  - Replaced `encryptionCipher` parameter with `encrypted` (boolean) and `encryptionKey` (List<int>)
+  - `encryptionKey` is now required only when `encrypted` is true
+  - Added validation to throw `ArgumentError` when encryption is enabled without a key
 
-### API Changes
+**Example App:**
+- 📁 Refactored example application structure for better organization
+  - Extracted models to `lib/models/`
+  - Extracted providers/notifiers to `lib/providers/`
+  - Extracted widgets to `lib/widgets/`
+  - Extracted pages to `lib/pages/`
+  - Created barrel files for easier imports
 
-- `HiveHydratedStorage.build()` now accepts:
-  - `encrypted: bool` (default: `false`) - Enable/disable encryption
-  - `encryptionKey: List<int>?` - 32-byte key (required when `encrypted: true`)
+**Documentation:**
+- 📚 Updated README with new encryption API examples
 
 ---
 
