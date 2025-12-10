@@ -25,6 +25,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      - name: Remove example directory (Flutter project)
+        run: rm -rf example
+      
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
@@ -66,6 +69,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      - name: Remove example directory (Flutter project)
+        run: rm -rf example
+      
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
@@ -97,6 +103,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Remove example directory (Flutter project)
+        run: rm -rf example
       
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
