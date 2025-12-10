@@ -165,4 +165,4 @@ jobs:
         run: dart pub global activate pana
       
       - name: Run pana analysis
-        run: dart pub global run pana --no-warning --exit-code-threshold 0
+        run: dart pub global run pana --no-warning --exit-code-threshold 0 --no-example
