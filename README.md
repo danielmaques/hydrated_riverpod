@@ -1,11 +1,11 @@
 # Hydrated Riverpod
 
-[![pub package](https://img.shields.io/pub/v/hydrated_riverpod.svg)](https://pub.dev/packages/hydrated_riverpod)
+[![pub package](https://img.shields.io/pub/v/riverpod_hydrated.svg)](https://pub.dev/packages/riverpod_hydrated)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/danielmaques/hydrated_riverpod/workflows/CI/badge.svg)](https://github.com/danielmaques/hydrated_riverpod/actions)
-[![codecov](https://codecov.io/gh/danielmaques/hydrated_riverpod/branch/main/graph/badge.svg)](https://codecov.io/gh/danielmaques/hydrated_riverpod)
-[![Pub Points](https://img.shields.io/pub/points/hydrated_riverpod)](https://pub.dev/packages/hydrated_riverpod/score)
-[![Pub Popularity](https://img.shields.io/pub/popularity/hydrated_riverpod)](https://pub.dev/packages/hydrated_riverpod)
+[![CI](https://github.com/danielmaques/riverpod_hydrated/workflows/CI/badge.svg)](https://github.com/danielmaques/riverpod_hydrated/actions)
+[![codecov](https://codecov.io/gh/danielmaques/riverpod_hydrated/branch/main/graph/badge.svg)](https://codecov.io/gh/danielmaques/riverpod_hydrated)
+[![Pub Points](https://img.shields.io/pub/points/riverpod_hydrated)](https://pub.dev/packages/riverpod_hydrated/score)
+[![Pub Popularity](https://img.shields.io/pub/popularity/riverpod_hydrated)](https://pub.dev/packages/riverpod_hydrated)
 
 An extension for Riverpod that automatically persists and restores the state of your notifiers using Hive as the storage backend.
 
@@ -28,7 +28,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  hydrated_riverpod: ^0.1.0
+  riverpod_hydrated: ^0.1.0
   riverpod: ^3.0.3  # or flutter_riverpod for Flutter
 ```
 
@@ -39,7 +39,7 @@ dependencies:
   path_provider: ^2.1.3  # Flutter only
 ```
 
-> **💡 Note**: `hive_ce` is already included as a dependency of `hydrated_riverpod`, you don't need to add it!
+> **💡 Note**: `hive_ce` is already included as a dependency of `riverpod_hydrated`, you don't need to add it!
 
 Then run:
 
@@ -56,7 +56,7 @@ dart pub get  # or flutter pub get
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hydrated_riverpod/hydrated_riverpod.dart';
+import 'package:riverpod_hydrated/riverpod_hydrated.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
@@ -79,7 +79,7 @@ Future<void> main() async {
 
 ```dart
 import 'dart:io';
-import 'package:hydrated_riverpod/hydrated_riverpod.dart';
+import 'package:riverpod_hydrated/riverpod_hydrated.dart';
 import 'package:riverpod/riverpod.dart';
 
 Future<void> main() async {
@@ -98,7 +98,7 @@ Future<void> main() async {
 
 ```dart
 import 'package:riverpod/riverpod.dart';
-import 'package:hydrated_riverpod/hydrated_riverpod.dart';
+import 'package:riverpod_hydrated/riverpod_hydrated.dart';
 
 class CounterNotifier extends HydratedNotifier<int> {
   @override
@@ -529,7 +529,7 @@ Hive does not support multiple isolates on the same box. If you see warnings abo
 
 ## 📊 Comparison with other solutions
 
-| Feature | hydrated_riverpod | shared_preferences | hydrated_bloc |
+| Feature | riverpod_hydrated | shared_preferences | hydrated_bloc |
 |---------|-------------------|-------------------|---------------|
 | Auto-persist | ✅ | ❌ | ✅ |
 | Type-safe | ✅ | ❌ | ✅ |

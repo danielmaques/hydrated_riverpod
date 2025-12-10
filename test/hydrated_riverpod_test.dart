@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:hive_ce/hive.dart';
-import 'package:hydrated_riverpod/hydrated_riverpod.dart';
+import 'package:riverpod_hydrated/hydrated_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:test/test.dart';
 

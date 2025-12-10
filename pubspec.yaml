@@ -1,4 +1,4 @@
-name: hydrated_riverpod
+name: riverpod_hydrated
 description: Riverpod extension that automatically persists and restores state using Hive storage backend.
 version: 0.1.0
 repository: https://github.com/danielmaques/hydrated_riverpod
