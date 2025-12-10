@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:hive_ce/hive.dart';
 import 'package:hydrated_riverpod/hydrated_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:test/test.dart';
@@ -221,6 +222,92 @@ void main() {
 
       expect(memory.writeCount, 1);
       expect(memory.store['DebouncedAutoDisposeNotifier'], {'value': 1});
+    });
+  });
+
+  group('Encrypted Storage', () {
+    test('should persist and restore state with encryption', () async {
+      // Create encrypted storage
+      final encryptedDir =
+          await Directory.systemTemp.createTemp('encrypted_test_');
+      final key = Hive.generateSecureKey();
+      final encryptedStorage = await HiveHydratedStorage.build(
+        storageDirectory: encryptedDir.path,
+        boxName: 'encrypted_box',
+        encrypted: true,
+        encryptionKey: key,
+      );
+      HydratedStorage.instance = encryptedStorage;
+
+      final counterProvider = NotifierProvider<TestCounterNotifier, int>(
+        TestCounterNotifier.new,
+      );
+
+      // First container - set value
+      final container1 = ProviderContainer();
+      container1.read(counterProvider.notifier).increment();
+      container1.read(counterProvider.notifier).increment();
+      expect(container1.read(counterProvider), equals(2));
+      container1.dispose();
+
+      // Second container - should restore
+      final container2 = ProviderContainer();
+      expect(container2.read(counterProvider), equals(2));
+      container2.dispose();
+
+      await encryptedStorage.clear();
+      await encryptedStorage.close();
+      await encryptedDir.delete(recursive: true);
+    });
+
+    test('should fail to read with wrong encryption key', () async {
+      final encryptedDir =
+          await Directory.systemTemp.createTemp('encrypted_wrong_key_');
+      final key1 = Hive.generateSecureKey();
+      final encryptedStorage1 = await HiveHydratedStorage.build(
+        storageDirectory: encryptedDir.path,
+        boxName: 'encrypted_wrong_key_box',
+        encrypted: true,
+        encryptionKey: key1,
+      );
+      HydratedStorage.instance = encryptedStorage1;
+
+      final counterProvider = NotifierProvider<TestCounterNotifier, int>(
+        TestCounterNotifier.new,
+      );
+
+      // Write with key1
+      final container1 = ProviderContainer();
+      container1.read(counterProvider.notifier).increment();
+      container1.dispose();
+
+      await encryptedStorage1.close();
+
+      // Try to open with different key - should throw
+      final key2 = Hive.generateSecureKey();
+      expect(
+        () => HiveHydratedStorage.build(
+          storageDirectory: encryptedDir.path,
+          boxName: 'encrypted_wrong_key_box',
+          encrypted: true,
+          encryptionKey: key2,
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      await encryptedDir.delete(recursive: true);
+    });
+
+    test('should throw when encrypted is true but no key provided', () async {
+      final dir = await Directory.systemTemp.createTemp('encrypted_no_key_');
+      expect(
+        () => HiveHydratedStorage.build(
+          storageDirectory: dir.path,
+          encrypted: true,
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+      await dir.delete(recursive: true);
     });
   });
 }

@@ -1,6 +1,21 @@
+## 0.2.0
+
+### New Features
+
+- 🔐 **Optional encryption support** - Added `encrypted` and `encryptionKey` parameters to `HiveHydratedStorage.build()` for AES-256 encryption
+
+### API Changes
+
+- `HiveHydratedStorage.build()` now accepts:
+  - `encrypted: bool` (default: `false`) - Enable/disable encryption
+  - `encryptionKey: List<int>?` - 32-byte key (required when `encrypted: true`)
+
+---
+
 ## 0.1.0
 
 ### Initial Beta Release
+
 
 **Features:**
 - ✨ Automatic state persistence and restoration for Riverpod notifiers

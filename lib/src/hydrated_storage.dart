@@ -76,15 +76,46 @@ class HiveHydratedStorage implements HydratedStorage {
   HiveHydratedStorage(this.box);
 
   /// Initializes storage with Hive
+  ///
+  /// Set [encrypted] to `true` to enable AES-256 encryption.
+  /// When enabled, you must provide an [encryptionKey] (32 bytes).
+  ///
+  /// ```dart
+  /// // Generate a key once and store it securely
+  /// final key = Hive.generateSecureKey();
+  ///
+  /// final storage = await HiveHydratedStorage.build(
+  ///   storageDirectory: appDir.path,
+  ///   encrypted: true,
+  ///   encryptionKey: key,
+  /// );
+  /// ```
+  ///
+  /// **Important**: Store the encryption key securely (e.g., using
+  /// `flutter_secure_storage`). If the key is lost, the data cannot be
+  /// recovered.
   static Future<HiveHydratedStorage> build({
     required String storageDirectory,
     String boxName = 'hydrated_box',
+    bool encrypted = false,
+    List<int>? encryptionKey,
   }) async {
+    if (encrypted && encryptionKey == null) {
+      throw ArgumentError(
+        'encryptionKey is required when encrypted is true. '
+        'Use Hive.generateSecureKey() to generate a 32-byte key.',
+      );
+    }
+
     if (!Hive.isBoxOpen(boxName)) {
       Hive.init(storageDirectory);
     }
 
-    final box = await Hive.openBox<dynamic>(boxName);
+    final cipher = encrypted ? HiveAesCipher(encryptionKey!) : null;
+    final box = await Hive.openBox<dynamic>(
+      boxName,
+      encryptionCipher: cipher,
+    );
     return HiveHydratedStorage(box);
   }
 

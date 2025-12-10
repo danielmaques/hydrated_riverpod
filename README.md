@@ -407,6 +407,43 @@ final storage = await HiveHydratedStorage.build(
 );
 ```
 
+### Encrypted storage
+
+For sensitive data, you can enable AES-256 encryption:
+
+```dart
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Get or generate encryption key
+  const secureStorage = FlutterSecureStorage();
+  var encryptionKeyString = await secureStorage.read(key: 'hive_key');
+  
+  if (encryptionKeyString == null) {
+    final key = Hive.generateSecureKey();
+    await secureStorage.write(key: 'hive_key', value: base64UrlEncode(key));
+    encryptionKeyString = base64UrlEncode(key);
+  }
+  
+  final encryptionKey = base64Url.decode(encryptionKeyString);
+  
+  final appDir = await getApplicationDocumentsDirectory();
+  final storage = await HiveHydratedStorage.build(
+    storageDirectory: appDir.path,
+    encrypted: true,
+    encryptionKey: encryptionKey,
+  );
+  HydratedStorage.instance = storage;
+  
+  runApp(const ProviderScope(child: MyApp()));
+}
+```
+
+> **⚠️ Important**: Store your encryption key securely using `flutter_secure_storage` or similar. If you lose the key, you lose access to all persisted data!
+
 ## 🎯 Best Practices
 
 ### ✅ DO
